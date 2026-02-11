@@ -17,7 +17,7 @@ EOT
     name                         = string
     storage_account_id           = string
     storage_account_key          = string
-    regenerate_key_automatically = optional(bool, false)
+    regenerate_key_automatically = optional(bool) # Default: false
     regeneration_period          = optional(string)
     tags                         = optional(map(string))
   }))
