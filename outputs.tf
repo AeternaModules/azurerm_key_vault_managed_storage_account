@@ -1,3 +1,7 @@
+output "key_vault_managed_storage_accounts_id" {
+  description = "Map of id values across all key_vault_managed_storage_accounts, keyed the same as var.key_vault_managed_storage_accounts"
+  value       = { for k, v in azurerm_key_vault_managed_storage_account.key_vault_managed_storage_accounts : k => v.id }
+}
 output "key_vault_managed_storage_accounts_key_vault_id" {
   description = "Map of key_vault_id values across all key_vault_managed_storage_accounts, keyed the same as var.key_vault_managed_storage_accounts"
   value       = { for k, v in azurerm_key_vault_managed_storage_account.key_vault_managed_storage_accounts : k => v.key_vault_id }
