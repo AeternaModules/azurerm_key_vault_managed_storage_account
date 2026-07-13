@@ -21,46 +21,30 @@ EOT
     regeneration_period          = optional(string)
     tags                         = optional(map(string))
   }))
-  # --- Unconfirmed validation candidates, derived from azurerm_key_vault_managed_storage_account's provider source ---
-  # Not auto-enabled: either a bespoke provider validator we can't safely translate,
-  # or a path that crosses a list-typed block (needs its own for_each wrapping).
-  # Review, translate into a real validation{} block above, and delete once confirmed.
-  # path: name
-  #   source:    [from keyvault.ValidateNestedItemName] !ok
-  # path: name
-  #   condition: length(value) <= 127
-  #   message:   [from keyvault.ValidateNestedItemName: invalid when len(value) > 127]
-  #   source:    [from keyvault.ValidateNestedItemName: invalid when len(value) > 127]
-  # path: name
-  #   source:    [from keyvault.ValidateNestedItemName] !regexp.MustCompile(`^[0-9a-zA-Z-]+$`).MatchString(v.(string))
-  # path: key_vault_id
-  #   source:    [from validationFunctionForResourceID] !ok
-  # path: key_vault_id
-  #   source:    [from validationFunctionForResourceID] err != nil
-  # path: storage_account_key
-  #   condition: contains(["key1", "key2"], value)
-  #   message:   must be one of: key1, key2
-  # path: storage_account_id
-  #   source:    [from commonids.ValidateStorageAccountID] !ok
-  # path: storage_account_id
-  #   source:    [from commonids.ValidateStorageAccountID] err != nil
-  # path: regeneration_period
-  #   source:    [from validate.ISO8601Duration] !ok
-  # path: regeneration_period
-  #   source:    [from validate.ISO8601Duration] err != nil
-  # path: tags
-  #   condition: length(value) <= 50
-  #   message:   [from tags.Validate: invalid when len(value) > 50]
-  #   source:    [from tags.Validate: invalid when len(value) > 50]
-  # path: tags
-  #   condition: length(value) <= 512
-  #   message:   [from tags.Validate: invalid when len(value) > 512]
-  #   source:    [from tags.Validate: invalid when len(value) > 512]
-  # path: tags
-  #   source:    [from tags.Validate] err != nil
-  # path: tags
-  #   condition: length(value) <= 256
-  #   message:   [from tags.Validate: invalid when len(value) > 256]
-  #   source:    [from tags.Validate: invalid when len(value) > 256]
+  validation {
+    condition = alltrue([
+      for k, v in var.key_vault_managed_storage_accounts : (
+        length(v.name) <= 127
+      )
+    ])
+    error_message = "[from keyvault.ValidateNestedItemName: invalid when len(value) > 127]"
+  }
+  validation {
+    condition = alltrue([
+      for k, v in var.key_vault_managed_storage_accounts : (
+        contains(["key1", "key2"], v.storage_account_key)
+      )
+    ])
+    error_message = "must be one of: key1, key2"
+  }
+  validation {
+    condition = alltrue([
+      for k, v in var.key_vault_managed_storage_accounts : (
+        v.tags == null || (length(v.tags) <= 50)
+      )
+    ])
+    error_message = "[from tags.Validate: invalid when len(value) > 50]"
+  }
+  # Note: 11 additional provider-side validators are enforced at apply time but not mirrored as validation{} blocks here (bespoke or non-mechanically-translatable).
 }
 
