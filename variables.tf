@@ -17,18 +17,10 @@ EOT
     name                         = string
     storage_account_id           = string
     storage_account_key          = string
-    regenerate_key_automatically = optional(bool) # Default: false
+    regenerate_key_automatically = optional(bool)
     regeneration_period          = optional(string)
     tags                         = optional(map(string))
   }))
-  validation {
-    condition = alltrue([
-      for k, v in var.key_vault_managed_storage_accounts : (
-        contains(["key1", "key2"], v.storage_account_key)
-      )
-    ])
-    error_message = "must be one of: key1, key2"
-  }
   # --- Unconfirmed validation candidates, derived from azurerm_key_vault_managed_storage_account's provider source ---
   # Not auto-enabled: either a bespoke provider validator we can't safely translate,
   # or a path that crosses a list-typed block (needs its own for_each wrapping).
@@ -41,6 +33,13 @@ EOT
   #   source:    [from keyvault.ValidateNestedItemName: invalid when len(value) > 127]
   # path: name
   #   source:    [from keyvault.ValidateNestedItemName] !regexp.MustCompile(`^[0-9a-zA-Z-]+$`).MatchString(v.(string))
+  # path: key_vault_id
+  #   source:    [from validationFunctionForResourceID] !ok
+  # path: key_vault_id
+  #   source:    [from validationFunctionForResourceID] err != nil
+  # path: storage_account_key
+  #   condition: contains(["key1", "key2"], value)
+  #   message:   must be one of: key1, key2
   # path: storage_account_id
   #   source:    [from commonids.ValidateStorageAccountID] !ok
   # path: storage_account_id
